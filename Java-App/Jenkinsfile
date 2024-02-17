@@ -1,50 +1,22 @@
 pipeline {
     agent any
-
-    environment {
-        JAVA_HOME = tool 'JDK11'
-        MAVEN_HOME = tool 'Maven'
-    }
-
+    
     stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
         stage('Build') {
             steps {
-                sh "${MAVEN_HOME}/bin/mvn clean install"
+                sh 'javac HelloWorld.java'
             }
         }
-
-        stage('Test') {
+        stage('Unit Test') {
             steps {
-                sh "${MAVEN_HOME}/bin/mvn test"
+                sh 'javac -cp .:junit.jar HelloWorldTest.java'
+                sh 'java  -cp .:junit.jar:hamcrest.jar org.junit.runner.JUnitCore HelloWorldTest'
             }
         }
-
-        stage('Deploy') {
+        stage('Run') {
             steps {
-                sh "docker build -t my-image-name ."
-                sh "docker run -d -p 8080:8080 my-image-name"
+                sh 'java HelloWorld'
             }
-        }
-
-        stage('Cleanup') {
-            steps {
-                sh "${MAVEN_HOME}/bin/mvn clean"
-            }
-        }
-    }
-
-    post {
-        success {
-            echo 'Deployment successful!'
-        }
-        failure {
-            echo 'Deployment failed. Check the logs for errors.'
         }
     }
 }
